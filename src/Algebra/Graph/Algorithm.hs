@@ -43,3 +43,26 @@ connHelper (n1, p1) (n2, p2)
   | n1 > n2 = (n1 + 1, p1)
   | otherwise = (n2 + 1, p2)
 
+findConnect :: Eq a => Graph a -> a -> [Graph a]
+findConnect Empty _ = []
+findConnect (Vertex _) _ = []
+findConnect (Connect (Vertex x) y) t
+  | x == t = (Connect (Vertex x) y) : findConnect y t
+  | otherwise = findConnect y t
+findConnect (Connect x y) t = (findConnect x t) <> (findConnect y t)
+findConnect (Overlay x y) t = (findConnect x t) <> (findConnect y t)
+
+extractVertices :: Graph a -> [a]
+extractVertices Empty = []
+extractVertices (Vertex x) = [x]
+extractVertices (Connect x y) = (extractVertices x) <> (extractVertices y)
+extractVertices (Overlay x y) = (extractVertices x) <> (extractVertices y)
+
+connectedWith :: Eq a => Graph a -> a -> [a]
+connectedWith Empty _ = []
+connectedWith (Vertex _) _ = []
+connectedWith (Connect (Vertex x) y) t
+  | x == t = (extractVertices y)
+  | otherwise = connectedWith y t
+connectedWith (Connect x y) t = (connectedWith x t) <> (connectedWith y t)
+connectedWith (Overlay x y) t = (connectedWith x t) <> (connectedWith y t)
