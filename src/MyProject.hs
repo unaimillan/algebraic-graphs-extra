@@ -8,6 +8,11 @@ sampleGraph = Overlay
   (Connect (Vertex 1) (Vertex 2))
   (Connect (Vertex 2) (Connect (Vertex 3) (Vertex 4)))
 
+sampleGraph2 :: Graph Int
+sampleGraph2 = Connect
+  (Connect (Vertex 1) (Vertex 2))
+  (Overlay (Vertex 3) (Vertex 4))
+
 run :: IO ()
 run = putStrLn "Hello, world!"
 
@@ -18,10 +23,10 @@ run = putStrLn "Hello, world!"
 -- testFindConnect x = findConnect sampleGraph x
 
 -- testConnectedWith :: Int -> [Int]
--- testConnectedWith x = connectedWith sampleGraph x
+-- testConnectedWith x = connectedWith sampleGraph2 x
 
 -- testBfsInit :: Int -> [(Int, Int)]
 -- testBfsInit x = bfsInit sampleGraph x
 
 testBfs :: Int -> [(Int, Int)]
-testBfs x = bfs sampleGraph x
+testBfs x = bfs sampleGraph2 x
