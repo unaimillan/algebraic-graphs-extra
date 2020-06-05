@@ -16,17 +16,5 @@ sampleGraph2 = Connect
 run :: IO ()
 run = putStrLn "Hello, world!"
 
--- test :: Maybe (Int, [Int])
--- test = shortestPath sampleGraph 1 4
-
--- testFindConnect :: Int -> [Graph Int]
--- testFindConnect x = findConnect sampleGraph x
-
--- testConnectedWith :: Int -> [Int]
--- testConnectedWith x = connectedWith sampleGraph2 x
-
--- testBfsInit :: Int -> [(Int, Int)]
--- testBfsInit x = bfsInit sampleGraph x
-
 testBfs :: Int -> [(Int, Int)]
-testBfs x = bfs sampleGraph2 x
+testBfs x = bfs sampleGraph x
