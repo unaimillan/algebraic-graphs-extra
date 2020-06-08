@@ -1,9 +1,13 @@
-module Algebra.Graph.Algorithm.Bfs(bfs) where
+-- |
+-- Breadth-first search (BFS) for algebraic graphs and BFS-based algorithms.
+module Algebra.Graph.Algorithm.Bfs where
 
 import           Algebra.Graph
 import qualified Data.Set      as S
 
--- | /O(?)/.
+-- * BFS core
+
+-- | \( O(?) \).
 -- BFS for algebraic graphs.
 --
 -- Returns list of reachable vertices with corresponding distances
@@ -15,6 +19,8 @@ bfs :: Ord a => Graph a -> a -> [(a, Int)]
 bfs graph s = bfsLoop graph s initial S.empty 1
   where
     initial = bfsDepth graph s 1
+
+-- ** Variations
 
 -- | The body of bfs algorithm.
 bfsLoop :: Ord a => Graph a -> a -> [(a, Int)] -> S.Set a -> Int -> [(a, Int)]
@@ -30,20 +36,9 @@ bfsLoop graph s (x:xs) visited depth
 bfsDepth :: Ord a => Graph a -> a -> Int -> [(a, Int)]
 bfsDepth graph t d = (\x -> (x, d)) <$> (unwrapMaybeList $ connectedWith graph t)
 
--- | /O(s)/.
--- Extract all vertices from given graph.
---
--- **NOTE:** may contain duplicates!
---
--- >>> extractVertices (1 * 2 + 2 * (3 * 4))
--- [1,2,2,3,4]
-extractVertices :: Graph a -> [a]
-extractVertices Empty         = []
-extractVertices (Vertex x)    = [x]
-extractVertices (Connect x y) = extractVertices x <> extractVertices y
-extractVertices (Overlay x y) = extractVertices x <> extractVertices y
+-- * Helpers
 
--- | Find all vertices reachable from a given one.
+-- | Find all vertices reachable(?) from a given one.
 --
 -- >>> connectedWith (1 * 2 + 2 * (3 * 4)) 2
 -- Just [3,4]
@@ -68,9 +63,20 @@ connectedWith (Connect x y) t = Just (left <> right)
     right = unwrapMaybeList $ connectedWith y t
 connectedWith (Overlay x y) t = (connectedWith x t) <> (connectedWith y t)
 
+-- | \( O(s) \).
+-- Extract all vertices from given graph.
+--
+-- **NOTE:** may contain duplicates!
+--
+-- >>> extractVertices (1 * 2 + 2 * (3 * 4))
+-- [1,2,2,3,4]
+extractVertices :: Graph a -> [a]
+extractVertices Empty         = []
+extractVertices (Vertex x)    = [x]
+extractVertices (Connect x y) = extractVertices x <> extractVertices y
+extractVertices (Overlay x y) = extractVertices x <> extractVertices y
+
 -- | TODO: remove this (it is not needed).
 unwrapMaybeList :: Maybe [a] -> [a]
 unwrapMaybeList Nothing  = []
 unwrapMaybeList (Just x) = x
-
-
