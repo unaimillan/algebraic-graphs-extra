@@ -4,7 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8d3c1cb259819bc067a9a2a4d0ac22c62a10c6d9282e5cbbc7586cdfd6cfd2cf
+-- hash: 80f8c78b5117b30dbd2f5da07be6522b99cfab692ea8c62caa0b2b9b188c2bae
 
 name:           algebraic-graphs-extra
 version:        0.1.0
@@ -77,6 +77,7 @@ test-suite spec
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      BfsSpec
       MyProjectSpec
       Paths_algebraic_graphs_extra
   hs-source-dirs:
