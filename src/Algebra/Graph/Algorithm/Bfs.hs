@@ -58,11 +58,19 @@ adjacentTo t (Connect l r)
     leftVertices = adjacentTo t l
 adjacentTo t (Overlay l r) = adjacentTo t l <> adjacentTo t r
 
--- | \( O(?) \).
+-- | \( O(s^2) \). Not sure.
 -- Find all reachable vertices a given vertex.
+--
+-- **NOTE:** may contain duplicates and starting point!
+--
+-- >>> reachableFrom 1 (1 * 2 + 2 * 3 + 3 * 4)
+-- [1,2,2,3,3,4]
 reachableFrom :: Eq a => a -> Graph a -> [a]
-reachableFrom t (Overlay l r) = error "not implemented"
-reachableFrom t g             = adjacentTo t g
+reachableFrom t (Overlay l r) = left <> right
+  where
+    left = concat $ (\x -> x : reachableFrom x r) <$> reachableFrom t l
+    right = reachableFrom t r
+reachableFrom t g = adjacentTo t g
 
 -- | \( O(?) \).
 -- Find all reachable vertices together with distance from a given vertex.
