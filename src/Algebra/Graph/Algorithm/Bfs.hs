@@ -18,7 +18,7 @@ import qualified Data.Set      as S
 bfs :: Ord a => Graph a -> a -> [(a, Int)]
 bfs graph s = bfsLoop graph s initial S.empty 1
   where
-    initial = bfsDepth graph s 1
+    initial = (\x -> (x, 1)) <$> adjacentTo s graph
 
 -- ** Variations
 
@@ -29,12 +29,8 @@ bfsLoop graph s (x:xs) visited depth
   | (S.notMember p visited) && (s /= p) = x : bfsLoop graph s (xs <> conns) (S.insert p visited) (depth + 1)
   | otherwise = bfsLoop graph s xs visited (depth + 1)
   where
-    conns = bfsDepth graph p (depth + 1)
+    conns = (\v -> (v, depth)) <$> adjacentTo p graph
     (p, _) = x
-
--- | TODO: what is this?
-bfsDepth :: Ord a => Graph a -> a -> Int -> [(a, Int)]
-bfsDepth graph t d = (\x -> (x, d)) <$> adjacentTo t graph
 
 -- * Helpers
 
@@ -43,8 +39,8 @@ bfsDepth graph t d = (\x -> (x, d)) <$> adjacentTo t graph
 --
 -- **NOTE:** may contain duplicates!
 --
--- >>> adjecentTo 2 (1 * 2 + 2 * 3 * 4)
--- Just [2,2,3,4]
+-- >>> adjacentTo 2 (1 * 2 + 2 * 3 * 4)
+-- [2,2,3,4]
 --
 -- Returns empty list if starting point does not belong to the graph:
 --
