@@ -58,24 +58,36 @@ adjacentTo t (Connect l r)
     leftVertices = adjacentTo t l
 adjacentTo t (Overlay l r) = adjacentTo t l <> adjacentTo t r
 
--- | \( O(s^2) \). Not sure.
+-- | \( O(s*n) \). Not sure.
 -- Find all reachable vertices a given vertex.
 --
 -- **NOTE:** may contain duplicates and starting point!
 --
 -- >>> reachableFrom 1 (1 * 2 + 2 * 3 + 3 * 4)
--- [1,2,2,3,3,4]
+-- [2,3,4]
 reachableFrom :: Eq a => a -> Graph a -> [a]
 reachableFrom t (Overlay l r) = left <> right
   where
     left = concat $ (\x -> x : reachableFrom x r) <$> reachableFrom t l
     right = reachableFrom t r
-reachableFrom t g = adjacentTo t g
+reachableFrom t g = adjacentTo' t g
 
--- | \( O(?) \).
+-- | \( O(s*n) \). Not sure.
 -- Find all reachable vertices together with distance from a given vertex.
+--
+-- >>> distancesFrom 1 (1 * 2 + 2 * 3 + 3 * 4)
+-- [(2,1),(3,2),(4,3)]
 distancesFrom :: Eq a => a -> Graph a -> [(a, Int)]
-distancesFrom = error "not implemented"
+distancesFrom t g = distancesFromHelper t 1 g
+
+distancesFromHelper :: Eq a => a -> Int -> Graph a -> [(a, Int)]
+distancesFromHelper t d (Overlay l r) = left <> right
+  where
+    left = concat
+      $ (\(x, y) -> (x, y) : distancesFromHelper x (y + 1) r)
+      <$> distancesFromHelper t d l
+    right = distancesFromHelper t d r
+distancesFromHelper t d g = (\x -> (x, d)) <$> adjacentTo' t g
 
 -- | \( O(s) \).
 -- Extract all vertices from given graph.
@@ -89,3 +101,38 @@ extractVertices Empty         = []
 extractVertices (Vertex x)    = [x]
 extractVertices (Connect x y) = extractVertices x <> extractVertices y
 extractVertices (Overlay x y) = extractVertices x <> extractVertices y
+
+-- * Temporary functions
+
+-- | \( O(s) \).
+-- Find all vertices adjacent to a given one).
+--
+-- >>> adjacentTo' 2 (1 * 2 + 2 * 3 * 4)
+-- [3,4]
+--
+-- Returns empty list if starting point does not belong to the graph:
+--
+-- >>> adjacentTo' 5 (1 * 2 + 2 * 3 * 4)
+-- []
+adjacentTo' :: Eq a => a -> Graph a -> [a]
+adjacentTo' t g = unwrapMaybeList $ adjacentToHelper t g
+
+adjacentToHelper :: Eq a => a -> Graph a -> Maybe [a]
+adjacentToHelper _ Empty = Nothing
+adjacentToHelper _ (Vertex _) = Nothing
+adjacentToHelper t (Connect (Vertex x) (Vertex y))
+  | x == t = Just [y]
+  | y == t = Just []
+  | otherwise = Nothing
+adjacentToHelper t (Connect (Vertex x) y)
+  | x == t = Just (extractVertices y)
+  | otherwise = adjacentToHelper t y
+adjacentToHelper t (Connect x y) = Just (left <> right)
+  where
+    left = unwrapMaybeList $ (<>) <$> (adjacentToHelper t x) <*> Just (extractVertices y)
+    right = unwrapMaybeList $ adjacentToHelper t y
+adjacentToHelper t (Overlay x y) = (adjacentToHelper t x) <> (adjacentToHelper t y)
+
+unwrapMaybeList :: Maybe [a] -> [a]
+unwrapMaybeList Nothing = []
+unwrapMaybeList (Just x) = x
