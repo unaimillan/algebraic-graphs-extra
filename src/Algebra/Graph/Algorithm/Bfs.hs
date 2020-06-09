@@ -34,34 +34,44 @@ bfsLoop graph s (x:xs) visited depth
 
 -- | TODO: what is this?
 bfsDepth :: Ord a => Graph a -> a -> Int -> [(a, Int)]
-bfsDepth graph t d = (\x -> (x, d)) <$> (unwrapMaybeList $ connectedWith graph t)
+bfsDepth graph t d = (\x -> (x, d)) <$> adjacentTo t graph
 
 -- * Helpers
 
--- | Find all vertices reachable(?) from a given one.
+-- | \( O(s) \).
+-- Find all vertices adjacent to a given one (including the vertex itself).
 --
--- >>> connectedWith (1 * 2 + 2 * (3 * 4)) 2
--- Just [3,4]
+-- **NOTE:** may contain duplicates!
 --
--- Returns 'Nothing' if starting point does not belong to the graph:
+-- >>> adjecentTo 2 (1 * 2 + 2 * 3 * 4)
+-- Just [2,2,3,4]
 --
--- >>> connectedWith (1 * 2 + 2 * (3 * 4)) 5
--- Nothing
-connectedWith :: Ord a => Graph a -> a -> Maybe [a]
-connectedWith Empty _ = Nothing
-connectedWith (Vertex _) _ = Nothing
-connectedWith (Connect (Vertex x) (Vertex y)) t
-  | x == t = Just [y]
-  | y == t = Just []
-  | otherwise = Nothing
-connectedWith (Connect (Vertex x) y) t
-  | x == t = Just (extractVertices y)
-  | otherwise = connectedWith y t
-connectedWith (Connect x y) t = Just (left <> right)
+-- Returns empty list if starting point does not belong to the graph:
+--
+-- >>> adjacentTo 5 (1 * 2 + 2 * 3 * 4)
+-- []
+adjacentTo :: Eq a => a -> Graph a -> [a]
+adjacentTo _ Empty = []
+adjacentTo t (Vertex u)
+  | u == t = [t]
+  | otherwise = []
+adjacentTo t (Connect l r)
+  | null leftVertices = adjacentTo t r
+  | otherwise         = leftVertices <> extractVertices r
   where
-    left = unwrapMaybeList $ (<>) <$> (connectedWith x t) <*> Just (extractVertices y)
-    right = unwrapMaybeList $ connectedWith y t
-connectedWith (Overlay x y) t = (connectedWith x t) <> (connectedWith y t)
+    leftVertices = adjacentTo t l
+adjacentTo t (Overlay l r) = adjacentTo t l <> adjacentTo t r
+
+-- | \( O(?) \).
+-- Find all reachable vertices a given vertex.
+reachableFrom :: Eq a => a -> Graph a -> [a]
+reachableFrom t (Overlay l r) = error "not implemented"
+reachableFrom t g             = adjacentTo t g
+
+-- | \( O(?) \).
+-- Find all reachable vertices together with distance from a given vertex.
+distancesFrom :: Eq a => a -> Graph a -> [(a, Int)]
+distancesFrom = error "not implemented"
 
 -- | \( O(s) \).
 -- Extract all vertices from given graph.
