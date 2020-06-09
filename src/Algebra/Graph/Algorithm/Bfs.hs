@@ -1,5 +1,5 @@
 -- |
--- Breadth-first search (BFS) for algebraic graphs and BFS-based algorithms.
+-- Breadth-first search (BFS) for directed algebraic graphs and BFS-based algorithms.
 module Algebra.Graph.Algorithm.Bfs where
 
 import           Algebra.Graph
@@ -7,7 +7,7 @@ import qualified Data.Set      as S
 
 -- * BFS core
 
--- | \( O(?) \).
+-- | \( O(n^2 log n) \). Not sure.
 -- BFS for algebraic graphs.
 --
 -- Returns list of reachable vertices with corresponding distances
@@ -22,7 +22,8 @@ bfs graph s = bfsLoop graph s initial S.empty 1
 
 -- ** Variations
 
--- | The body of bfs algorithm.
+-- | \( O(n^2 log n) \). Not sure.
+-- The body of bfs algorithm.
 bfsLoop :: Ord a => Graph a -> a -> [(a, Int)] -> S.Set a -> Int -> [(a, Int)]
 bfsLoop _ _ [] _ _ = []
 bfsLoop graph s (x:xs) visited depth
