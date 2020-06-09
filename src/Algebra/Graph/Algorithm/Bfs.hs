@@ -7,7 +7,7 @@ import qualified Data.Set      as S
 
 -- * BFS core
 
--- | \( O(n^2 log n) \). Not sure.
+-- | \( O(?) \).
 -- BFS for algebraic graphs.
 --
 -- Returns list of reachable vertices with corresponding distances
@@ -22,8 +22,7 @@ bfs graph s = bfsLoop graph s initial S.empty 1
 
 -- ** Variations
 
--- | \( O(n^2 log n) \). Not sure.
--- The body of bfs algorithm.
+-- | The body of bfs algorithm.
 bfsLoop :: Ord a => Graph a -> a -> [(a, Int)] -> S.Set a -> Int -> [(a, Int)]
 bfsLoop _ _ [] _ _ = []
 bfsLoop graph s (x:xs) visited depth
