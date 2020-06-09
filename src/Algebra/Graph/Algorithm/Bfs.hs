@@ -81,8 +81,3 @@ extractVertices Empty         = []
 extractVertices (Vertex x)    = [x]
 extractVertices (Connect x y) = extractVertices x <> extractVertices y
 extractVertices (Overlay x y) = extractVertices x <> extractVertices y
-
--- | TODO: remove this (it is not needed).
-unwrapMaybeList :: Maybe [a] -> [a]
-unwrapMaybeList Nothing  = []
-unwrapMaybeList (Just x) = x
