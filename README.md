@@ -1,6 +1,6 @@
 # algebraic-graphs-extra
 
-[![Build Status]()]()
+[![Build Status](https://travis-ci.org/unaimillan/algebraic-graphs-extra.svg?branch=master)](https://travis-ci.org/unaimillan/algebraic-graphs-extra)
 
 ### Prerequisites
 
