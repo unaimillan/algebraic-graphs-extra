@@ -86,19 +86,33 @@ reachableFromHelper t _ g = adjacentTo' t g
 -- | \( O(s*n) \). Not sure.
 -- Find all reachable vertices together with distance from a given vertex.
 --
+-- **NOTE:** may contain duplicates and starting point!
+--
 -- >>> distancesFrom 1 (1 * 2 + 2 * 3 + 3 * 4)
 -- [(1,0),(2,1),(3,2),(4,3)]
+--
+-- >>> distancesFrom 1 ((1 * 2 + 3 * 4) + (2 * 3))
+-- [(1,0),(2,1),(3,2),(3,2),(4,3)]
 distancesFrom :: Eq a => a -> Graph a -> [(a, Int)]
-distancesFrom t g = (t, 0) : distancesFromHelper t 1 g
+distancesFrom t g = (t, 0) : distancesFromHelper t 1 Empty g
 
-distancesFromHelper :: Eq a => a -> Int -> Graph a -> [(a, Int)]
-distancesFromHelper t d (Overlay l r) = left <> right
+distancesFromHelper :: Eq a => a -> Int -> Graph a -> Graph a -> [(a, Int)]
+distancesFromHelper t d Empty (Overlay l r) = left <> right
   where
     left = concat
-      $ (\(x, y) -> (x, y) : distancesFromHelper x (y + 1) r)
-      <$> distancesFromHelper t d l
-    right = distancesFromHelper t d r
-distancesFromHelper t d g = (\x -> (x, d)) <$> adjacentTo' t g
+      $ (\(x, y) -> (x, y) : distancesFromHelper x (y + 1) Empty r)
+      <$> distancesFromHelper t d r l
+    right = distancesFromHelper t d Empty r
+distancesFromHelper t d rightSide (Overlay l r) = left <> right
+  where
+    rightSideCheck = concat
+      $ (\(x, y) -> (x, y) : distancesFromHelper x (y + 1) Empty rightSide)
+      <$> distancesFromHelper t d r l
+    left = concat
+      $ (\(x, y) -> (x, y) : distancesFromHelper x (y + 1) Empty r)
+      <$> rightSideCheck
+    right = distancesFromHelper t d Empty r
+distancesFromHelper t d _ g = (\x -> (x, d)) <$> adjacentTo' t g
 
 -- | \( O(s) \).
 -- Extract all vertices from given graph.
