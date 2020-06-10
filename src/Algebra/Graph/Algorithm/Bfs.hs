@@ -65,16 +65,23 @@ adjacentTo t (Overlay l r) = adjacentTo t l <> adjacentTo t r
 --
 -- >>> reachableFrom 1 (1 * 2 + 2 * 3 + 3 * 4)
 -- [1,2,3,4]
-
+--
+-- >>> reachableFrom 1 ((1 * 2 + 3 * 4) + (2 * 3))
+-- [1,2,3,3,4]
 reachableFrom :: Eq a => a -> Graph a -> [a]
-reachableFrom t g = t : reachableFromHelper t g
+reachableFrom t g = t : reachableFromHelper t Empty g
 
-reachableFromHelper :: Eq a => a -> Graph a -> [a]
-reachableFromHelper t (Overlay l r) = left <> right
+reachableFromHelper :: Eq a => a -> Graph a -> Graph a -> [a]
+reachableFromHelper t Empty (Overlay l r) = left <> right
   where
-    left = concat $ (\x -> x : reachableFromHelper x r) <$> reachableFromHelper t l
-    right = reachableFromHelper t r
-reachableFromHelper t g = adjacentTo' t g
+    left = concat $ (\x -> x : reachableFromHelper x Empty r) <$> reachableFromHelper t r l
+    right = reachableFromHelper t Empty r
+reachableFromHelper t rightSide (Overlay l r) = left <> right
+  where
+    rightSideCheck = concat $ (\x -> x : reachableFromHelper x Empty rightSide) <$> reachableFromHelper t rightSide l
+    left = concat $ (\x -> x : reachableFromHelper x Empty r) <$> rightSideCheck
+    right = reachableFromHelper t Empty r
+reachableFromHelper t _ g = adjacentTo' t g
 
 -- | \( O(s*n) \). Not sure.
 -- Find all reachable vertices together with distance from a given vertex.
