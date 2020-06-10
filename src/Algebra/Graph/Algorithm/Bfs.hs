@@ -114,12 +114,16 @@ extractVertices (Overlay x y) = extractVertices x <> extractVertices y
 --
 -- >>> adjacentTo' 5 (1 * 2 + 2 * 3 * 4)
 -- []
+-- >>> adjacentTo' 1 ((1 + 2) * (3 + 4) + (1 + 3) * (2 + 4))
+-- [3,4,2,4]
 adjacentTo' :: Eq a => a -> Graph a -> [a]
 adjacentTo' t g = unwrapMaybeList $ adjacentToHelper t g
 
 adjacentToHelper :: Eq a => a -> Graph a -> Maybe [a]
 adjacentToHelper _ Empty = Nothing
-adjacentToHelper _ (Vertex _) = Nothing
+adjacentToHelper t (Vertex x)
+  | t == x = Just []
+  | otherwise = Nothing
 adjacentToHelper t (Connect (Vertex x) (Vertex y))
   | x == t = Just [y]
   | y == t = Just []
