@@ -1,9 +1,13 @@
+{-# LANGUAGE GADTs #-}
 -- |
 -- Breadth-first search (BFS) for directed algebraic graphs and BFS-based algorithms.
 module Algebra.Graph.Algorithm.Bfs where
 
 import           Algebra.Graph
-import qualified Data.Set      as S
+import           Data.Set      (Set)
+import qualified Data.Set      as Set
+import           Data.Map.Strict      (Map)
+import qualified Data.Map.Strict      as Map
 
 -- * BFS core
 
@@ -16,17 +20,17 @@ import qualified Data.Set      as S
 -- >>> bfs (1 * 2 + 2 * (3 * 4)) 1
 -- [(2,1),(3,2),(4,2)]
 bfs :: Ord a => Graph a -> a -> [(a, Int)]
-bfs graph s = bfsLoop graph s initial S.empty 1
+bfs graph s = bfsLoop graph s initial Set.empty 1
   where
     initial = (\x -> (x, 1)) <$> adjacentTo s graph
 
 -- ** Variations
 
 -- | The body of bfs algorithm.
-bfsLoop :: Ord a => Graph a -> a -> [(a, Int)] -> S.Set a -> Int -> [(a, Int)]
+bfsLoop :: Ord a => Graph a -> a -> [(a, Int)] -> Set a -> Int -> [(a, Int)]
 bfsLoop _ _ [] _ _ = []
 bfsLoop graph s (x:xs) visited depth
-  | (S.notMember p visited) && (s /= p) = x : bfsLoop graph s (xs <> conns) (S.insert p visited) (depth + 1)
+  | (Set.notMember p visited) && (s /= p) = x : bfsLoop graph s (xs <> conns) (Set.insert p visited) (depth + 1)
   | otherwise = bfsLoop graph s xs visited (depth + 1)
   where
     conns = (\v -> (v, depth)) <$> adjacentTo p graph
@@ -165,3 +169,52 @@ adjacentToHelper t (Overlay x y) = (adjacentToHelper t x) <> (adjacentToHelper t
 unwrapMaybeList :: Maybe [a] -> [a]
 unwrapMaybeList Nothing = []
 unwrapMaybeList (Just x) = x
+
+-- adjacentMap :: Ord a => Graph a -> Map a (Set a)
+-- adjacentMap g = adjacentMapHelper g
+
+-- adjacentMapHelper :: Ord a => Graph a -> Map a (Set a)
+-- adjacentMapHelper Empty = Map.empty
+-- adjacentMapHelper (Vertex x) = Map.singleton x Set.empty
+-- adjacentMapHelper (Connect (Vertex l) (Vertex r)) = Map.singleton l $ Set.singleton r
+
+data Dist a where {
+  Dist :: Ord a => a -> Int -> Dist a
+}
+
+instance Eq (Dist a) where
+  (Dist x _) == (Dist y _) = x == y
+
+instance Ord (Dist a) where
+  (Dist x _) <= (Dist y _) = x <= y
+
+instance Show a => Show (Dist a) where
+  show (Dist x y) = "Dist " <> show x <> " " <> show y
+
+-- |
+--
+-- >>> let dm = distancesMap (((1 * 2) + (3 * 4)) * (2 * 3))
+-- >>> import Data.Map.Internal.Debug
+-- >>> putStr $ showTree dm
+--
+distancesMap :: Ord a => Graph a -> Map a (Set (a, Int))
+distancesMap Empty = Map.empty
+distancesMap (Vertex x) = Map.singleton x Set.empty
+distancesMap (Connect l r) = Map.unionWith Set.union updatedLeft right
+  where
+    left = distancesMap l
+    right = distancesMap r
+    adjacents = Set.map (\x -> (x, 1)) $ Map.keysSet right
+    updatedLeft = Map.mapWithKey (\k x -> Set.union (Set.filter (\y -> fst y /= k) adjacents) x) left
+distancesMap (Overlay l r) = Map.unionWith Set.union left right
+  where
+    left = distancesMap l
+    right = distancesMap r
+
+-- addConnectInfo
+-- connectUnion :: Ord a => (a, Int)
+-- connectUnion :: Ord a => a -> Set (a, Int) -> Set (a, Int) -> Set (a, Int)
+-- connectUnion v l r
+--   | Set.null l = r
+--   | Set.null r = l
+--   | otherwise = r 
