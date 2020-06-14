@@ -1,3 +1,3 @@
-module Algebra.Graph.Algorithm where
+module Algebra.Graph.Algorithm(bfs) where
 
-
+import Algebra.Graph.Algorithm.Bfs

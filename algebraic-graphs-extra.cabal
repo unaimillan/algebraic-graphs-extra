@@ -4,7 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c72d6ec28196f63fb4d9f02d7ffa580700ee07adf4c9e05c060ced00b704b4e9
+-- hash: 80f8c78b5117b30dbd2f5da07be6522b99cfab692ea8c62caa0b2b9b188c2bae
 
 name:           algebraic-graphs-extra
 version:        0.1.0
@@ -29,6 +29,7 @@ custom-setup
 library
   exposed-modules:
       Algebra.Graph.Algorithm
+      Algebra.Graph.Algorithm.Bfs
       Algebra.Graph.Algorithm.Internal
       MyProject
   other-modules:
@@ -39,6 +40,7 @@ library
   build-depends:
       algebraic-graphs
     , base >=4.7 && <5
+    , containers
   default-language: Haskell2010
 
 executable algebraic-graphs-extra-exe
@@ -52,6 +54,7 @@ executable algebraic-graphs-extra-exe
       algebraic-graphs
     , algebraic-graphs-extra
     , base >=4.7 && <5
+    , containers
   default-language: Haskell2010
 
 test-suite doctests
@@ -65,6 +68,7 @@ test-suite doctests
     , QuickCheck
     , algebraic-graphs
     , base
+    , containers
     , doctest
     , template-haskell
   default-language: Haskell2010
@@ -73,6 +77,7 @@ test-suite spec
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      BfsSpec
       MyProjectSpec
       Paths_algebraic_graphs_extra
   hs-source-dirs:
@@ -84,5 +89,6 @@ test-suite spec
     , algebraic-graphs
     , algebraic-graphs-extra
     , base >=4.7 && <5
+    , containers
     , hspec
   default-language: Haskell2010
