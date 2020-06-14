@@ -191,11 +191,34 @@ instance Ord (Dist a) where
 instance Show a => Show (Dist a) where
   show (Dist x y) = "Dist " <> show x <> " " <> show y
 
--- |
+
+-- | \( O(s + n log n) \). Not sure.
 --
--- >>> let dm = distancesMap (((1 * 2) + (3 * 4)) * (2 * 3))
--- >>> import Data.Map.Internal.Debug
--- >>> putStr $ showTree dm
+-- Creates Map for every vertex with set of all reachable vertices
+--
+-- >>> let rm = reachableMap (((1 * 2) + (3 * 4)) + (2 * 3))
+-- >>> Set.toList (rm Map.! 1)
+-- [1,2,3,4]
+reachableMap :: Ord a => Graph a -> Map a (Set a)
+reachableMap Empty = Map.empty
+reachableMap (Vertex v) = Map.singleton v (Set.singleton v)
+reachableMap (Connect l r) = Map.unionWith Set.union updatedLeft right
+  where
+    left = reachableMap l
+    right = reachableMap r
+    adjacents = Map.keysSet right
+    updatedLeft = (\x -> Set.union adjacents x) <$> left
+reachableMap (Overlay l r) = Map.unionWith Set.union updatedLeft updatedRight
+  where
+    left = reachableMap l
+    right = reachableMap r
+    updatedRight = (\rightSet -> setFlatten $ Set.map (\x -> Set.insert x (unwrap (left Map.!? x))) rightSet) <$> right
+    updatedLeft = (\leftSet -> setFlatten $ Set.map (\x -> Set.insert x (unwrap (updatedRight Map.!? x))) leftSet) <$> left
+    unwrap Nothing = Set.empty
+    unwrap (Just x) = x
+    setFlatten = Set.foldr Set.union Set.empty
+
+-- *NOTE: In progress*
 --
 distancesMap :: Ord a => Graph a -> Map a (Set (a, Int))
 distancesMap Empty = Map.empty
@@ -211,10 +234,3 @@ distancesMap (Overlay l r) = Map.unionWith Set.union left right
     left = distancesMap l
     right = distancesMap r
 
--- addConnectInfo
--- connectUnion :: Ord a => (a, Int)
--- connectUnion :: Ord a => a -> Set (a, Int) -> Set (a, Int) -> Set (a, Int)
--- connectUnion v l r
---   | Set.null l = r
---   | Set.null r = l
---   | otherwise = r 
