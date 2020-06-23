@@ -31,6 +31,7 @@ dependencies:
 - algebraic-graphs
 - containers
 - disjoint-containers
+- union-find
 
 library:
   source-dirs: src
