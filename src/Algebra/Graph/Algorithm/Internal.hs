@@ -8,7 +8,7 @@ import qualified Data.Map.Strict   as Map
 import           Data.UnionFind.ST (Point)
 import qualified Data.UnionFind.ST as UF
 
--- | O(s + n^2)
+-- | O(s + n log n)
 -- Extract disjoint set of connectivity components from the graph
 --
 -- >>> components (((1 * 2) + (3 * 4)) + (2 * 3))
@@ -46,13 +46,12 @@ mkVertexPoints (Overlay l r) = do
   (rp, rg) <- mkVertexPoints r
   return (lp <> rp, Overlay lg rg)
 
--- | O(s + n^2). Not sure.
+-- | O(s + n).
 componentsST :: Ord a => Graph (Point s a) -> ST s ()
 componentsST (Overlay l r) = componentsST l >> componentsST r
-componentsST (Connect l r) = do
-  left <- extractPointsST l
-  right <- extractPointsST r
-  sequence_ $ liftM2 UF.union left right
+componentsST g@(Connect _ _) = do
+  (p:ps) <- extractPointsST g
+  foldM_ (\x y -> (UF.union x y) >> (return y)) p ps
 componentsST _ = return ()
 
 -- | O(s).
