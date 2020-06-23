@@ -1,12 +1,12 @@
 module Algebra.Graph.Algorithm.Internal where
 
-import Algebra.Graph
-import Data.UnionFind.ST (Point)
+import           Algebra.Graph
+import           Control.Monad
+import           Control.Monad.ST
+import           Data.Map.Strict   (Map)
+import qualified Data.Map.Strict   as Map
+import           Data.UnionFind.ST (Point)
 import qualified Data.UnionFind.ST as UF
-import Control.Monad.ST
-import Control.Monad
-import Data.Map.Strict (Map)
-import qualified Data.Map.Strict as Map
 
 -- | O(s + n^2)
 -- Extract disjoint set of connectivity components from the graph
@@ -53,7 +53,7 @@ componentsST (Connect l r) = do
   left <- extractPointsST l
   right <- extractPointsST r
   sequence_ $ liftM2 UF.union left right
-componentsST _ = mempty
+componentsST _ = return ()
 
 -- | O(s).
 extractPointsST :: Graph (Point s a) -> ST s [Point s a]
