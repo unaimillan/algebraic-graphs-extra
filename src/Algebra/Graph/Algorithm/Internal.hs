@@ -1,38 +1,35 @@
 module Algebra.Graph.Algorithm.Internal where
 
-import                            Algebra.Graph
-import Data.DisjointSet           (DisjointSet)
-import qualified Data.DisjointSet as DisjointSet
-import qualified Data.UnionFind.ST as UF
+import Algebra.Graph
 import Data.UnionFind.ST (Point)
+import qualified Data.UnionFind.ST as UF
 import Control.Monad.ST
 import Control.Monad
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
--- import Control.Applicative
 
--- | Extract disjoint set of connectivity components from the graph
+-- | O(s + n^2)
+-- Extract disjoint set of connectivity components from the graph
 --
--- >>> DisjointSet.pretty $ components ((1 * 2) + (3 * 4))
--- "{{1,2},{3,4}}"
+-- >>> components (((1 * 2) + (3 * 4)) + (2 * 3))
 --
--- >>> DisjointSet.pretty $ components (((1 * 2) + (3 * 4)) + (2 * 3))
--- "{{1,2,3,4}}"
-components :: Ord a => Graph a -> DisjointSet a
-components Empty           = DisjointSet.empty
-components (Vertex x)      = DisjointSet.singleton x
-components g@(Connect _ _) = DisjointSet.singletons $ vertexSet g
-components (Overlay x y)   = components x <> components y
+components :: Ord a => Graph a -> Map a [a]
+components g = runST $ do
+  (px, g') <- mkVertexPoints g
+  componentsST g'
+  componentsFromPoints px
 
--- O(s + n log n) OR O(s + n) (for "good" type 'a').
+-- | O(n log n). Not sure.
+componentsFromPoints :: Ord a => [(a, Point s a)] -> ST s (Map a [a])
+componentsFromPoints vs = do
+  list <- pointsList vs
+  return $ Map.fromListWith (<>) list
 
-
--- -- | O(n log n).
--- componentsFromPoints :: Ord a => [(a, Point s a)] -> ST s (Map a [a])
--- componentsFromPoints vertices = Map.fromListWith (++) $
---   forM vertices $ \(x, px) -> do
---     repr <- UF.descriptor px
---     return (repr, x)
+-- | O(n).
+pointsList :: [(a, Point s a)] -> ST s [(a, [a])]
+pointsList = mapM $ \(x, px) -> do
+  repr <- UF.descriptor px
+  return (repr, [x])
 
 -- | O(s).
 mkVertexPoints :: Eq a => Graph a -> ST s ([(a, Point s a)], (Graph (Point s a)))
@@ -49,7 +46,7 @@ mkVertexPoints (Overlay l r) = do
   (rp, rg) <- mkVertexPoints r
   return (lp <> rp, Overlay lg rg)
 
--- | O(s^2). Not sure.
+-- | O(s + n^2). Not sure.
 componentsST :: Ord a => Graph (Point s a) -> ST s ()
 componentsST (Overlay l r) = componentsST l >> componentsST r
 componentsST (Connect l r) = do
