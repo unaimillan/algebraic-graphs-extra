@@ -45,12 +45,12 @@ mkVertexPoints (Vertex v) ps =
     _ -> return (ps, Empty)
 mkVertexPoints (Connect l r) ps = do
   (lp, lg) <- mkVertexPoints l ps
-  (rp, rg) <- mkVertexPoints r ps
-  return (lp <> rp, Connect lg rg)
+  (rp, rg) <- mkVertexPoints r lp
+  return (rp, Connect lg rg)
 mkVertexPoints (Overlay l r) ps = do
   (lp, lg) <- mkVertexPoints l ps
-  (rp, rg) <- mkVertexPoints r ps
-  return (lp <> rp, Overlay lg rg)
+  (rp, rg) <- mkVertexPoints r lp
+  return (rp, Overlay lg rg)
 
 -- | O(s + n).
 componentsST :: Ord a => Graph (Point s a) -> ST s ()
