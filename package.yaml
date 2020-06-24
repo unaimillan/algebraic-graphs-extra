@@ -32,6 +32,7 @@ dependencies:
 - containers
 - disjoint-containers
 - union-find
+- mtl
 
 library:
   source-dirs: src

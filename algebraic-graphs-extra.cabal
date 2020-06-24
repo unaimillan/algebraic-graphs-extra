@@ -4,7 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: eb943775390b1bfaa4266c01e782672f471729c04156860a191d0f0fe199ecf8
+-- hash: 5946beec68492e7eac9a3811cfa90c899d7b797588bc69fd0a039c56176061c7
 
 name:           algebraic-graphs-extra
 version:        0.1.0
@@ -41,6 +41,7 @@ library
     , base >=4.7 && <5
     , containers
     , disjoint-containers
+    , mtl
     , union-find
   default-language: Haskell2010
 
@@ -57,6 +58,7 @@ executable algebraic-graphs-extra-exe
     , base >=4.7 && <5
     , containers
     , disjoint-containers
+    , mtl
     , union-find
   default-language: Haskell2010
 
@@ -74,6 +76,7 @@ test-suite doctests
     , containers
     , disjoint-containers
     , doctest
+    , mtl
     , template-haskell
     , union-find
   default-language: Haskell2010
@@ -96,5 +99,6 @@ test-suite spec
     , containers
     , disjoint-containers
     , hspec
+    , mtl
     , union-find
   default-language: Haskell2010

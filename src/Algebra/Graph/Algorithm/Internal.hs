@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Algebra.Graph.Algorithm.Internal where
 
 import           Algebra.Graph
@@ -14,12 +15,12 @@ import qualified Data.UnionFind.ST as UF
 -- **NOTE:** Doesn't work properly. Check an example.
 --
 -- >>> components (((1 * 2) + (3 * 4)) + (2 * 3))
--- fromList [(2,[2,1]),(3,[3,2]),(4,[4,3])]
+-- fromList [(2,[2,1]),(4,[4,3])]
 components :: Ord a => Graph a -> Map a [a]
 components g = runST $ do
-  (px, g') <- mkVertexPoints g
+  (ps, g') <- mkVertexPoints g Map.empty
   componentsST g'
-  componentsFromPoints px
+  componentsFromPoints $ Map.toList ps
 
 -- | O(n log n). Not sure.
 componentsFromPoints :: Ord a => [(a, Point s a)] -> ST s (Map a [a])
@@ -33,19 +34,22 @@ pointsList = mapM $ \(x, px) -> do
   repr <- UF.descriptor px
   return (repr, [x])
 
--- | O(s).
-mkVertexPoints :: Eq a => Graph a -> ST s ([(a, Point s a)], (Graph (Point s a)))
-mkVertexPoints Empty = return ([], Empty)
-mkVertexPoints (Vertex v) = do
-  point <- UF.fresh v
-  return ([(v, point)], Vertex point)
-mkVertexPoints (Connect l r) = do
-  (lp, lg) <- mkVertexPoints l
-  (rp, rg) <- mkVertexPoints r
+-- | O(s + n log n).
+mkVertexPoints :: Ord a => Graph a -> Map a (Point s a) -> ST s (Map a (Point s a), Graph (Point s a))
+mkVertexPoints Empty _ = return (Map.empty, Empty)
+mkVertexPoints (Vertex v) ps =
+  case Map.lookup v ps of
+    Nothing -> do
+      p <- UF.fresh v
+      return (Map.insert v p ps, Vertex p)
+    _ -> return (ps, Empty)
+mkVertexPoints (Connect l r) ps = do
+  (lp, lg) <- mkVertexPoints l ps
+  (rp, rg) <- mkVertexPoints r ps
   return (lp <> rp, Connect lg rg)
-mkVertexPoints (Overlay l r) = do
-  (lp, lg) <- mkVertexPoints l
-  (rp, rg) <- mkVertexPoints r
+mkVertexPoints (Overlay l r) ps = do
+  (lp, lg) <- mkVertexPoints l ps
+  (rp, rg) <- mkVertexPoints r ps
   return (lp <> rp, Overlay lg rg)
 
 -- | O(s + n).
