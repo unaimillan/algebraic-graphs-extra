@@ -52,8 +52,11 @@ mkVertexPoints (Overlay l r) = do
 componentsST :: Ord a => Graph (Point s a) -> ST s ()
 componentsST (Overlay l r) = componentsST l >> componentsST r
 componentsST g@(Connect _ _) = do
-  (p:ps) <- extractPointsST g
-  foldM_ (\x y -> (UF.union x y) >> (return y)) p ps
+  points <- extractPointsST g
+  case points of
+    (p:ps) ->
+      foldM_ (\x y -> (UF.union x y) >> (return y)) p ps
+    _ -> return ()
 componentsST _ = return ()
 
 -- | O(s).
