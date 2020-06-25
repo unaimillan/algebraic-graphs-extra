@@ -37,12 +37,12 @@ pointsList = mapM $ \(x, px) -> do
 -- | O(s + n log n).
 mkVertexPoints :: Ord a => Graph a -> Map a (Point s a) -> ST s (Map a (Point s a), Graph (Point s a))
 mkVertexPoints Empty _ = return (Map.empty, Empty)
-mkVertexPoints (Vertex v) ps =
+mkVertexPoints (Vertex v) ps = do
+  p <- UF.fresh v
   case Map.lookup v ps of
     Nothing -> do
-      p <- UF.fresh v
       return (Map.insert v p ps, Vertex p)
-    _ -> return (ps, Empty)
+    _ -> return (ps, Vertex p)
 mkVertexPoints (Connect l r) ps = do
   (lp, lg) <- mkVertexPoints l ps
   (rp, rg) <- mkVertexPoints r lp
