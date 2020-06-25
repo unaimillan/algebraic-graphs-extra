@@ -10,17 +10,16 @@ import           Data.UnionFind.ST (Point)
 import qualified Data.UnionFind.ST as UF
 
 -- | O(s + n log n)
--- Extract disjoint set of connectivity components from the graph
---
--- **NOTE:** Doesn't work properly. Check an example.
+-- Extract connectivity components from the graph
 --
 -- >>> components (((1 * 2) + (3 * 4)) + (2 * 3))
--- fromList [(4,[4,3,2,1])]
-components :: Ord a => Graph a -> Map a [a]
+-- [[4,3,2,1]]
+components :: Ord a => Graph a -> [[a]]
 components g = runST $ do
   (ps, g') <- mkVertexPoints g Map.empty
   componentsST g'
-  componentsFromPoints $ Map.toList ps
+  comp <- componentsFromPoints $ Map.toList ps
+  return $ Map.elems comp
 
 -- | O(n log n). Not sure.
 componentsFromPoints :: Ord a => [(a, Point s a)] -> ST s (Map a [a])
