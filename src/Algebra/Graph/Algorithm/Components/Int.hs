@@ -1,16 +1,17 @@
 module Algebra.Graph.Algorithm.Components.Int where
 
 import           Algebra.Graph
+import           Algebra.Graph.Algorithm.Internal
 import           Control.Monad
 import           Control.Monad.ST
-import           Data.UnionFind.ST   (Point)
-import qualified Data.UnionFind.ST   as UF
-import           Data.Vector         (Vector)
-import qualified Data.Vector         as Vector
-import           Data.Vector.Mutable (STVector)
-import qualified Data.Vector.Mutable as MVector
+import           Data.UnionFind.ST                (Point)
+import qualified Data.UnionFind.ST                as UF
+import           Data.Vector                      (Vector)
+import qualified Data.Vector                      as Vector
+import           Data.Vector.Mutable              (STVector)
+import qualified Data.Vector.Mutable              as MVector
 
--- | O(s + n).
+-- | O(s).
 -- Extract connectivity components from the graph.
 --
 -- All vertices should have /int/ type.
@@ -73,26 +74,12 @@ mkVertexPoints (Overlay l r) ps = do
   (rp, rg) <- mkVertexPoints r lp
   return (rp, Overlay lg rg)
 
--- | O(s + n).
+-- | O(s).
 componentsST :: Graph (Point s a) -> ST s ()
 componentsST (Overlay l r) = componentsST l >> componentsST r
 componentsST g@(Connect _ _) = do
-  points <- extractPointsST g
-  case points of
+  case extractVertices g of
     (p:ps) ->
       foldM_ (\x y -> (UF.union x y) >> (return y)) p ps
     _ -> return ()
 componentsST _ = return ()
-
--- | O(s).
-extractPointsST :: Graph (Point s a) -> ST s [Point s a]
-extractPointsST Empty = return []
-extractPointsST (Vertex v) = return [v]
-extractPointsST (Connect l r) = do
-  left <- extractPointsST l
-  right <- extractPointsST r
-  return $ left <> right
-extractPointsST (Overlay l r) = do
-  left <- extractPointsST l
-  right <- extractPointsST r
-  return $ left <> right
