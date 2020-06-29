@@ -10,7 +10,7 @@ import           Data.UnionFind.ST                (Point)
 import qualified Data.UnionFind.ST                as UF
 
 -- | O(s + n log n).
--- Extract connectivity components from the graph
+-- Extract connectivity components from the graph.
 --
 -- >>> components ((1 * 2) + (3 * 4))
 -- [[2,1],[4,3]]

@@ -4,7 +4,8 @@ import           Algebra.Graph
 import           Data.DisjointSet (DisjointSet)
 import qualified Data.DisjointSet as DisjointSet
 
--- | Extract disjoint set of connectivity components from the graph
+-- | O(s + n log^2 n)
+-- Extract disjoint set of connectivity components from the graph.
 --
 -- >>> DisjointSet.pretty $ components ((1 * 2) + (3 * 4))
 -- "{{1,2},{3,4}}"
