@@ -1,15 +1,16 @@
 module Algebra.Graph.Algorithm.Components.ST where
 
 import           Algebra.Graph
+import           Algebra.Graph.Algorithm.Internal
 import           Control.Monad
 import           Control.Monad.ST
-import           Data.Map.Strict   (Map)
-import qualified Data.Map.Strict   as Map
-import           Data.UnionFind.ST (Point)
-import qualified Data.UnionFind.ST as UF
+import           Data.Map.Strict                  (Map)
+import qualified Data.Map.Strict                  as Map
+import           Data.UnionFind.ST                (Point)
+import qualified Data.UnionFind.ST                as UF
 
 -- | O(s + n log n).
--- Extract connectivity components from the graph
+-- Extract connectivity components from the graph.
 --
 -- >>> components ((1 * 2) + (3 * 4))
 -- [[2,1],[4,3]]
@@ -57,22 +58,8 @@ mkVertexPoints (Overlay l r) ps = do
 componentsST :: Ord a => Graph (Point s a) -> ST s ()
 componentsST (Overlay l r) = componentsST l >> componentsST r
 componentsST g@(Connect _ _) = do
-  points <- extractPointsST g
-  case points of
+  case extractVertices g of
     (p:ps) ->
       foldM_ (\x y -> (UF.union x y) >> (return y)) p ps
     _ -> return ()
 componentsST _ = return ()
-
--- | O(s).
-extractPointsST :: Graph (Point s a) -> ST s [Point s a]
-extractPointsST Empty = return []
-extractPointsST (Vertex v) = return [v]
-extractPointsST (Connect l r) = do
-  left <- extractPointsST l
-  right <- extractPointsST r
-  return $ left <> right
-extractPointsST (Overlay l r) = do
-  left <- extractPointsST l
-  right <- extractPointsST r
-  return $ left <> right

@@ -33,6 +33,7 @@ dependencies:
 - disjoint-containers
 - union-find
 - mtl
+- vector
 
 library:
   source-dirs: src
