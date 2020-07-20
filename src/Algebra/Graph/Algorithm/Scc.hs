@@ -5,6 +5,25 @@ import           Algebra.Graph.Algorithm.Internal
 import           Data.Maybe
 import qualified Data.Set                         as Set
 
+-- | \( O(?) \).
+--
+-- >>> g = (1 * 4 + (2 + 1) * (3 + 5))
+-- >>> groupOn (`mod` 2) g == [(0, 4 + 2), (1, 1 + 1 * (3 + 5))]
+-- True
+groupOn :: Ord b => (a -> b) -> Graph a -> [(b, Graph a)]
+groupOn f Empty         = []
+groupOn f (Vertex x)    = [(f x, Vertex x)]
+groupOn f (Overlay l r) = mergeWith Overlay (groupOn f l) (groupOn f r)
+groupOn f (Connect l r) = mergeWith Connect (groupOn f l) (groupOn f r)
+
+-- | \( O(min(n, m)) \). Where \(n\) and \(m\) are lengths of input lists.
+mergeWith :: Ord k => (v -> v -> v) -> [(k, v)] -> [(k, v)] -> [(k, v)]
+mergeWith f ((x, gx):xs) ((y, gy):ys)
+  | x < y = (x, gx) : mergeWith f xs ((y, gy):ys)
+  | y < x = (y, gy) : mergeWith f ((x, gx):xs) ys
+  | otherwise = (x, f gx gy) : mergeWith f xs ys
+mergeWith _ xs ys = xs <> ys
+
 -- | O(n^2 * s)
 -- Groups elements into graph of a graph by rule (first function)
 --
