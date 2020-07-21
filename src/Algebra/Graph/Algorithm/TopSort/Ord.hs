@@ -20,19 +20,27 @@ import qualified Data.Map.Strict          as Map
 -- >>> topSort g
 -- Nothing
 topSort :: Ord a => Graph a -> Maybe (Graph (Int, a))
-topSort g = evalState (traverseGraph g) (0, Map.empty, False)
+topSort g = evalState (traverseGraph g) s
+  where
+    s = TopSortState 0 Map.empty False
 
-traverseGraph :: Ord a => Graph a -> State (Int, Map a Int, Bool) (Maybe (Graph (Int, a)))
+data TopSortState a = TopSortState
+  { nextIndex      :: Int
+  , vertexIndices  :: Map a Int
+  , dublicateFound :: Bool
+  }
+
+traverseGraph :: Ord a => Graph a -> State (TopSortState a) (Maybe (Graph (Int, a)))
 traverseGraph Empty = return $ Just Empty
 traverseGraph (Vertex v) = do
-  (max_i, is, b) <- get
-  case Map.lookup v is of
+  TopSortState n_i vs d <- get
+  case Map.lookup v vs of
     Just i -> do
-      put (max_i, is, True)
+      put $ TopSortState n_i vs True
       return $ Just $ Vertex (i, v)
     Nothing -> do
-      put (max_i + 1, Map.insert v max_i is, b)
-      return $ Just $ Vertex (max_i, v)
+      put $ TopSortState (n_i + 1) (Map.insert v n_i vs) d
+      return $ Just $ Vertex (n_i, v)
 traverseGraph (Overlay l r) = do
   left <- traverseGraph l
   right <- traverseGraph r
@@ -41,9 +49,9 @@ traverseGraph (Overlay l r) = do
     Overlay l' <$> right
 traverseGraph (Connect l r) = do
   left <- traverseGraph l
-  modify (\(x, y, _) -> (x, y, False))
+  modify (\s -> s {dublicateFound = False})
   right <- traverseGraph r
-  (_, _, b) <- get
-  return $ if b then Nothing else do
+  s <- get
+  return $ if dublicateFound s then Nothing else do
     l' <- left
     Connect l' <$> right
