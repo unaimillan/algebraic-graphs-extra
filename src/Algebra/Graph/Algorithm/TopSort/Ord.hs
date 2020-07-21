@@ -25,13 +25,13 @@ topSort g = evalState (traverseGraph g) (0, Map.empty, False)
 traverseGraph :: Ord a => Graph a -> State (Int, Map a Int, Bool) (Maybe (Graph (Int, a)))
 traverseGraph Empty = return $ Just Empty
 traverseGraph (Vertex v) = do
-  (max_i, is, _) <- get
+  (max_i, is, b) <- get
   case Map.lookup v is of
     Just i -> do
       put (max_i, is, True)
       return $ Just $ Vertex (i, v)
     Nothing -> do
-      put (max_i + 1, Map.insert v max_i is, False)
+      put (max_i + 1, Map.insert v max_i is, b)
       return $ Just $ Vertex (max_i, v)
 traverseGraph (Overlay l r) = do
   left <- traverseGraph l
@@ -41,6 +41,7 @@ traverseGraph (Overlay l r) = do
     Overlay l' <$> right
 traverseGraph (Connect l r) = do
   left <- traverseGraph l
+  modify (\(x, y, _) -> (x, y, False))
   right <- traverseGraph r
   (_, _, b) <- get
   return $ if b then Nothing else do
