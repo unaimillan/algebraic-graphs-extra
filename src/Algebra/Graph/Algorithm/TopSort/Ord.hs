@@ -7,29 +7,42 @@ import qualified Data.Map.Strict          as Map
 
 -- | O(s * log n)
 --
--- TODO: "cycles checking"
+-- Calculates topological number for each vertex.
 --
 -- >>> g = (1 * 2) + (2 * 3)
--- >>> topSort g == overlay (edge (0, 1) (1, 2)) (edge (1, 2) (2, 3))
+-- >>> g_final = overlay (edge (0, 1) (1, 2)) (edge (1, 2) (2, 3))
+-- >>> topSort g == Just g_final
 -- True
-topSort :: Ord a => Graph a -> Graph (Int, a)
-topSort g = evalState (traverseGraph g) (0, Map.empty)
+--
+-- If graph contains cycle, returns Nothing.
+--
+-- >>> g = (1 * 2) + (2 * 3) + (3 * 1)
+-- >>> topSort g
+-- Nothing
+topSort :: Ord a => Graph a -> Maybe (Graph (Int, a))
+topSort g = evalState (traverseGraph g) (0, Map.empty, False)
 
-traverseGraph :: Ord a => Graph a -> State (Int, Map a Int) (Graph (Int, a))
-traverseGraph Empty = return Empty
+traverseGraph :: Ord a => Graph a -> State (Int, Map a Int, Bool) (Maybe (Graph (Int, a)))
+traverseGraph Empty = return $ Just Empty
 traverseGraph (Vertex v) = do
-  (max_i, is) <- get
+  (max_i, is, _) <- get
   case Map.lookup v is of
-    Just i ->
-      return $ Vertex (i, v)
+    Just i -> do
+      put (max_i, is, True)
+      return $ Just $ Vertex (i, v)
     Nothing -> do
-      put (max_i + 1, Map.insert v max_i is)
-      return $ Vertex (max_i, v)
+      put (max_i + 1, Map.insert v max_i is, False)
+      return $ Just $ Vertex (max_i, v)
 traverseGraph (Overlay l r) = do
   left <- traverseGraph l
   right <- traverseGraph r
-  return $ Overlay left right
+  return $ do
+    l' <- left
+    Overlay l' <$> right
 traverseGraph (Connect l r) = do
   left <- traverseGraph l
   right <- traverseGraph r
-  return $ Connect left right
+  (_, _, b) <- get
+  return $ if b then Nothing else do
+    l' <- left
+    Connect l' <$> right
