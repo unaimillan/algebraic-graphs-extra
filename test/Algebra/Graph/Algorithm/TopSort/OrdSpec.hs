@@ -33,4 +33,4 @@ spec = do
       topSort (path [1..n]) == Just (path $ zip [0..] [1..(n :: Int)])
 
     it "Circuit graph" $ property $ \n ->
-      topSort (circuit [1..(n :: Int)]) == Nothing
+      topSort (circuit [1..(abs (n :: Int) + 1)]) == Nothing
