@@ -34,3 +34,6 @@ spec = do
 
     it "Circuit graph" $ property $ \n ->
       topSort (circuit [1..(abs (n :: Int) + 1)]) == Nothing
+
+    it "Star graph" $ property $ \n ->
+      topSort (star 1 [2..n]) == Just (star (0, 1) $ zip [1..] [2..(n :: Int)])
