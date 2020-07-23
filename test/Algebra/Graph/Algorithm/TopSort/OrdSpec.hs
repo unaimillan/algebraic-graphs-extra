@@ -34,18 +34,18 @@ spec = do
   describe "General cases for TopSort.Ord module" $ do
 
     it "Path graph" $ property $ \n ->
-      topSort (path [1..n]) == Just (path $ zip [0..] [1..(n :: Int)])
+      topSort (path [1..n]) == Just (path $ zip [0..] [1..(n :: Word)])
 
     it "Circuit graph" $ property $ \n ->
-      topSort (circuit [1..(abs (n :: Int) + 1)]) == Nothing
+      topSort (circuit [1..((n :: Word) + 1)]) == Nothing
 
     it "Star graph" $ property $ \n ->
-      topSort (star 1 [2..n]) == Just (star (0, 1) $ zip [1..] [2..(n :: Int)])
+      topSort (star 1 [2..n]) == Just (star (0, 1) $ zip [1..] [2..(n :: Word)])
 
     it "isAcyclic test" $ property isAcyclicTest
 
 
-isAcyclicTest :: Graph Int -> Bool
+isAcyclicTest :: Graph Word -> Bool
 isAcyclicTest g = isJust (topSort g) == isAcyclic (toAdjacencyMap g)
 
 instance Arbitrary a => Arbitrary (Graph a) where
