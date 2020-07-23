@@ -1,7 +1,11 @@
 module Algebra.Graph.Algorithm.TopSort.OrdSpec where
 
 import           Algebra.Graph
+import           Algebra.Graph.AdjacencyMap.Algorithm (isAcyclic)
 import           Algebra.Graph.Algorithm.TopSort.Ord
+import           Algebra.Graph.ToGraph                (toAdjacencyMap)
+import           Control.Monad
+import           Data.Maybe
 import           Test.Hspec
 import           Test.QuickCheck
 
@@ -37,3 +41,25 @@ spec = do
 
     it "Star graph" $ property $ \n ->
       topSort (star 1 [2..n]) == Just (star (0, 1) $ zip [1..] [2..(n :: Int)])
+
+    it "isAcyclic test" $ property isAcyclicTest
+
+
+isAcyclicTest :: Graph Int -> Bool
+isAcyclicTest g = isJust (topSort g) == isAcyclic (toAdjacencyMap g)
+
+instance Arbitrary a => Arbitrary (Graph a) where
+  arbitrary = sized genGraph
+  shrink Empty         = []
+  shrink (Vertex _)    = [Empty]
+  shrink (Overlay l r) = [Empty, l, r] <> shrink l <> shrink r
+  shrink (Connect l r) = [Empty, l, r] <> shrink l <> shrink r
+
+genGraph :: Arbitrary a => Int -> Gen (Graph a)
+genGraph n
+  | n > 0 = oneof [liftM Vertex arbitrary
+                      , liftM2 Overlay subgraph subgraph
+                      , liftM2 Connect subgraph subgraph]
+  | otherwise = liftM Vertex arbitrary
+    where
+      subgraph = genGraph (n `div` 2)
