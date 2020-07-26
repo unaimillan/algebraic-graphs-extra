@@ -2,7 +2,7 @@ module Algebra.Graph.Algorithm.TopSort.OrdSpec where
 
 import           Algebra.Graph
 import           Algebra.Graph.AdjacencyMap.Algorithm (isAcyclic)
-import           Algebra.Graph.Algorithm.TopSort.Ord
+import           Algebra.Graph.Algorithm.TopSort.Ord  hiding (isAcyclic)
 import           Algebra.Graph.ToGraph                (toAdjacencyMap)
 import           Control.Monad
 import           Data.Maybe
@@ -44,7 +44,6 @@ spec = do
 
     it "isAcyclic test" $ property isAcyclicTest
 
-
 isAcyclicTest :: Graph Word -> Bool
 isAcyclicTest g = isJust (topSort g) == isAcyclic (toAdjacencyMap g)
 
@@ -57,9 +56,11 @@ instance Arbitrary a => Arbitrary (Graph a) where
 
 genGraph :: Arbitrary a => Int -> Gen (Graph a)
 genGraph n
-  | n > 0 = oneof [liftM Vertex arbitrary
-                      , liftM2 Overlay subgraph subgraph
-                      , liftM2 Connect subgraph subgraph]
+  | n > 0 = oneof
+    [liftM Vertex arbitrary
+    , liftM2 Overlay subgraph subgraph
+    , liftM2 Connect subgraph subgraph
+    ]
   | otherwise = liftM Vertex arbitrary
     where
       subgraph = genGraph (n `div` 2)
