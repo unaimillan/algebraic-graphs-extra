@@ -4,6 +4,7 @@ import           Algebra.Graph
 import           Control.Monad.State.Lazy
 import           Data.Map.Strict          (Map)
 import qualified Data.Map.Strict          as Map
+import           Data.Maybe
 import           Data.Set                 (Set)
 import qualified Data.Set                 as Set
 
@@ -22,34 +23,46 @@ import qualified Data.Set                 as Set
 -- >>> topSort g
 -- Nothing
 topSort :: Ord a => Graph a -> Maybe (Graph (Int, a))
-topSort g = if isAcyclic g then Just $ evalState (traverseGraph g) s
-                                else Nothing
+topSort g = evalState (traverseGraph g) initialTopSortState
   where
-    s = TopSortState 0 Map.empty
+    initialTopSortState = TopSortState 0 Map.empty
 
 data TopSortState a = TopSortState
   { nextIndex     :: Int
   , vertexIndices :: Map a Int
   }
 
-traverseGraph :: Ord a => Graph a -> State (TopSortState a) (Graph (Int, a))
-traverseGraph Empty = return Empty
+traverseGraph :: Ord a => Graph a -> State (TopSortState a) (Maybe (Graph (Int, a)))
+traverseGraph Empty = return $ Just Empty
 traverseGraph (Vertex v) = do
   TopSortState n_i vs <- get
   case Map.lookup v vs of
-    Just i -> do
-      return $ Vertex (i, v)
+    Just i ->
+      if i < n_i then
+        return Nothing
+      else do
+        modify (\s -> s { nextIndex = i + 1 })
+        return $ Just $ Vertex (i, v)
     Nothing -> do
       put $ TopSortState (n_i + 1) (Map.insert v n_i vs)
-      return $ Vertex (n_i, v)
+      return $ Just $ Vertex (n_i, v)
 traverseGraph (Overlay l r) = do
+  savedNextIndex <- gets nextIndex
   left <- traverseGraph l
+  leftNextIndex <- gets nextIndex
+  modify (\s -> s { nextIndex = savedNextIndex })
   right <- traverseGraph r
-  return $ Overlay left right
+  rightNextIndex <- gets nextIndex
+  modify (\s -> s { nextIndex = max leftNextIndex rightNextIndex })
+  return $ do
+    l' <- left
+    Overlay l' <$> right
 traverseGraph (Connect l r) = do
   left <- traverseGraph l
   right <- traverseGraph r
-  return $ Connect left right
+  return $ do
+    l' <- left
+    Connect l' <$> right
 
 -- | O(s * log n)
 --
@@ -61,32 +74,4 @@ traverseGraph (Connect l r) = do
 -- >>> isAcyclic (((1 * 2) + (2 * 3)) + (3 * 1))
 -- False
 isAcyclic :: Ord a => Graph a -> Bool
-isAcyclic Empty         = True
-isAcyclic (Vertex _)    = True
-isAcyclic (Overlay l r) =
-  isAcyclic l
-  && isAcyclic r
-  && Set.disjoint left right
-  where
-    left = if not (connectExist l) then Set.empty else leftVertices l
-    right = if not (connectExist r) then Set.empty else rightVertices r
-isAcyclic (Connect l r) = isAcyclic l && isAcyclic r
-  && Set.disjoint (vertexSet l) (vertexSet r)
-
-rightVertices :: Ord a => Graph a -> Set a
-rightVertices Empty         = Set.empty
-rightVertices (Vertex v)    = Set.singleton v
-rightVertices (Overlay l r) = Set.union (rightVertices l) (rightVertices r)
-rightVertices (Connect _ r) = rightVertices r
-
-leftVertices :: Ord a => Graph a -> Set a
-leftVertices Empty         = Set.empty
-leftVertices (Vertex v)    = Set.singleton v
-leftVertices (Overlay l r) = Set.union (leftVertices l) (leftVertices r)
-leftVertices (Connect l _) = leftVertices l
-
-connectExist :: Graph a -> Bool
-connectExist Empty         = False
-connectExist (Vertex _)    = False
-connectExist (Connect _ _) = True
-connectExist (Overlay l r) = connectExist l || connectExist r
+isAcyclic = isJust . topSort
