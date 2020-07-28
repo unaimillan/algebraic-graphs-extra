@@ -4,7 +4,7 @@ cabal-version: 1.24
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c957bb17cf7a807d23f39e10a5c6274eba0ab9a4908454927453c5e5453791e1
+-- hash: 319f166326e8e2a57409f073c7c778f1c5bc06965d59c30ebdaf63aaf996385b
 
 name:           algebraic-graphs-extra
 version:        0.1.0
@@ -34,6 +34,8 @@ library
       Algebra.Graph.Algorithm.Components.Int
       Algebra.Graph.Algorithm.Components.ST
       Algebra.Graph.Algorithm.Internal
+      Algebra.Graph.Algorithm.TopNum
+      Algebra.Graph.Algorithm.TopNum.Ord
       Algebra.Graph.Algorithm.TopSort
       Algebra.Graph.Algorithm.TopSort.Ord
       MyProject
